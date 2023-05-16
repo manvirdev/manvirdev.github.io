@@ -45,10 +45,9 @@ export const processString = (str) => {
             const endTime = moment(ele.match(/\d+:\d+/g)[1], 'HH:mm');
 
             let patrol = new Patrol(patrolType, officer, backupOfficer, startTime, endTime);
-
             patrols.push(patrol);
         });
-
+        
         if (patrols.length === 0) {
             throw new Error('No patrols found.');
         }

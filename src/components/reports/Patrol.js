@@ -1,6 +1,3 @@
-import moment from 'moment';
-import Person from './Person';
-
 class Patrol {
   constructor(type, officer, backupOfficer, startTime, endTime) {
     this.type = type;

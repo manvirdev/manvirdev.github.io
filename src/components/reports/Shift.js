@@ -11,8 +11,7 @@ class Shift {
         this.patrols = patrols;
     }
 
-    async getWeatherData(city) {
-        const apiKey = "0b5dec097d48d73f2e8e06cde9bab8fd";
+    async getWeatherData() {
         const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=49.25&longitude=-123.12&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours&forecast_days=1&timezone=auto`;
       
         try {
@@ -49,9 +48,9 @@ class Shift {
         // Add weather data to the report
         if (weatherData) {
           const { maxTemperature, minTemperature, precipitation } = weatherData;
-          report.push(`Weather data for the day: Max Temperature: ${maxTemperature}°C, `);
+          report.push(`Weather data for the day: \nMax Temperature: ${maxTemperature}°C, `);
           report.push(`Min Temperature: ${minTemperature}°C, `);
-          report.push(`Precipitation: ${precipitation} mm\n`);
+          report.push(`Precipitation: ${precipitation} mm\n\n`);
         }
         report.push(...this.getStartingNotes())
         this.patrols.forEach((patrol) => {
@@ -102,23 +101,24 @@ class Shift {
 
     getStartingNotes() {
         const startingNotes = [];
-        const briefingTime = this.startTime.format("HH:mm");
-
+        const briefingTime = moment("08:00", "HH:mm").format("HH:mm");
+      
         // Start time: S/O briefing officer briefed all the officers' names
         const briefingNote = `${briefingTime}: S/O ${this.briefingOfficer.firstName} ${this.briefingOfficer.lastName.toUpperCase()} briefed ${this.getOfficersList()} and handed over the keys.\n`;
-
+      
         startingNotes.push(briefingNote);
-
-        // Start time + 10 mins: All the officers read the passon
-        const readPassonTime = this.startTime.clone().add(10, "minutes").format("HH:mm");
+      
+        // Start time + 10 mins: All the officers read the pass-on
+        const readPassonTime = moment(briefingTime, "HH:mm").add(10, "minutes").format("HH:mm");
         const officersList = this.getOfficersList();
         const readPassonNote = `${readPassonTime}: ${officersList} read the pass-on and emails.\n`;
-
+      
         startingNotes.push(readPassonNote);
-
+      
         return startingNotes;
-    }
+      }
 
+      
     getOfficersList() {
         return this.officers.map((officer) => `S/O ${officer.firstName} ${officer.lastName.toUpperCase()}`).join(", ");
     }

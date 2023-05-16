@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Shift from './reports/Shift';
 import Patrol from './reports/Patrol';
 import Person from './reports/Person';
+import moment from 'moment';
 
 const MyComponent = () => {
   const [inputValue, setInputValue] = useState('');
@@ -21,13 +22,13 @@ const MyComponent = () => {
   }
 
   const strProcessor = (str) => {
-    officers = [];
-    patrols = [];
+    let officers = [];
+    let patrols = [];
 
-    //Error handling
-    if (typeof str !== String) {
-      throw new Error("Invalid input");
-    }
+    str = String(str);
+    
+    str = str.replace(/(?:\r\n|\r|\n)/g, ' ');
+    str = str.replace(/\t+/gm, ' ')
 
     str = str.trim();
 
@@ -36,19 +37,19 @@ const MyComponent = () => {
     arr.forEach((ele) => {
       ele = ele.replace('+ S - M232 - Colliers - Exchange Building  + ', '');
 
-      const patrolType = ele.match(/^([\w\/\-]+)/)[0] + ' Patrol';
+      const patrolType = ele.match(/^([\w\/\-]+)/)[0];
 
       ele = ele.replace(/^([\w\/\-]+)/, '');
       ele = ele.replace(/\sPatrol\s/, '');
 
-      const officerName = ele.match(/\w+\s+/)[0].trim();
+      const officerFirstName = ele.match(/\w+\s+/)[0].trim();
       ele = ele.replace(/\w+\s+/, '');
 
       // Last name in all caps
       const officerLastName = ele.match(/\w+/)[0].toUpperCase();
       ele = ele.replace(/\w+/, '');
 
-      const officer = new Person(officerName, officerLastName);
+      const officer = new Person(officerFirstName, officerLastName);
 
       const exists = officers.some(ele => ele.isSamePerson(officer));
 
@@ -56,16 +57,19 @@ const MyComponent = () => {
         officers.push(officer);
       }
 
-      const startTime = ele.match(/\d+:\d+/)[0];
-      const endTime = ele.match(/\d+:\d+/g)[1];
+      let backupOfficer = officers.find((o) => !o.isSamePerson(officer));
 
-      const startTimeInMinutes = convertTimeToMinutes(startTime);
-      const endTimeInMinutes = convertTimeToMinutes(endTime);
+      const startTime = moment(ele.match(/\d+:\d+/)[0], 'HH:mm');
+      const endTime = moment(ele.match(/\d+:\d+/g)[1], 'HH:mm');
+
+      let patrol = new Patrol(patrolType, officer, backupOfficer, startTime, endTime);
+      
+      patrols.push(patrol);
+
+      let shift = new Shift(new Person("test", "test"), patrols[0].startTime, patrols[patrols.length - 1].endTime, officers, patrols);
+      
+      setResultValue(shift.generateReport());
     })
-
-
-
-
   };
 
   const containerStyles = {
@@ -127,21 +131,7 @@ const MyComponent = () => {
               readOnly
             ></textarea>
           </div>
-          <div className="col-sm">
-            <div className="container-fluid">
-              <div
-                className="mt-4 min-h-100 w-100 "
-                id="gif"
-                style={{
-                  backgroundImage: `url(${gifUrl})`,
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: 'contain',
-                  minHeight: '500px',
-                }}
-              ></div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>

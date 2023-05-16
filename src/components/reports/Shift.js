@@ -61,7 +61,6 @@ class Shift {
 
             report.push(patrolString);
         });
-
         return report.join('');
     }
 

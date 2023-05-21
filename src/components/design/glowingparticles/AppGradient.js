@@ -2,12 +2,31 @@ import React, { useEffect, useRef } from 'react';
 import { GlowParticle } from './GlowParticle'; // Assuming you have the GlowParticle class defined in a separate file
 
 const COLORS = [
-  { r: 25, g: 100, b: 106 },
-  { r: 0, g: 223, b: 150 },
-  { r: 0, g: 198, b: 144 },
-  { r: 3, g: 46, b: 62 },
-  { r: 0, g: 206, b: 82 },
+  { r: 123, g: 50, b: 148 },   // Purple
+  { r: 155, g: 89, b: 182 },
+  { r: 186, g: 85, b: 211 },
+  { r: 128, g: 0, b: 128 },
+  { r: 138, g: 43, b: 226 },
+  { r: 0, g: 0, b: 255 },      // Blue
+  { r: 30, g: 144, b: 255 },
+  { r: 0, g: 191, b: 255 },
+  { r: 70, g: 130, b: 180 },
+  { r: 0, g: 128, b: 255 },
+  { r: 255, g: 0, b: 0 },      // Red
+  { r: 220, g: 20, b: 60 },
+  { r: 255, g: 69, b: 0 },
+  { r: 178, g: 34, b: 34 },
+  { r: 205, g: 92, b: 92 },
+  { r: 255, g: 255, b: 0 },    // Yellow
+  { r: 255, g: 215, b: 0 },
 ];
+
+// { r: 25, g: 100, b: 106 },
+// { r: 0, g: 223, b: 150 },
+// { r: 0, g: 198, b: 144 },
+// { r: 3, g: 46, b: 62 },
+// { r: 0, g: 206, b: 82 },
+// ];
 
 const gradientStyle = {
   minHeight: '10vh',

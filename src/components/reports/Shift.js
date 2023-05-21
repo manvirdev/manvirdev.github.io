@@ -3,28 +3,103 @@ import moment from "moment";
 import axios from "axios";
 
 class Shift {
-    constructor(briefingOfficer, startTime, endTime, officers, patrols) {
+    constructor(briefingOfficer, startTime, endTime, officers, patrols, type, breaks) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.briefingOfficer = briefingOfficer;
         this.officers = officers;
         this.patrols = patrols;
+        this.type = type;
+        this.breaks = breaks;
+    }
+    
+    findAvailableTimeSlots() {
+      const availableSlots = [];
+    
+      // Get the start and end times of the shift
+      const shiftStartTime = this.startTime;
+      const shiftEndTime = this.endTime;
+    
+      // Sort the patrols by their start time
+      const sortedPatrols = this.patrols.slice().sort((a, b) => a.startTime - b.startTime);
+    
+      // Find the available time slots
+      let currentTime = shiftStartTime.clone();
+      let nextPatrolIndex = 0;
+    
+      while (currentTime.isBefore(shiftEndTime) && nextPatrolIndex < sortedPatrols.length) {
+        const nextPatrol = sortedPatrols[nextPatrolIndex];
+    
+        if (currentTime.isBefore(nextPatrol.startTime)) {
+          // If the current time is before the next patrol, it's an available time slot
+          availableSlots.push({
+            startTime: currentTime.clone(),
+            endTime: nextPatrol.startTime.clone(),
+          });
+        }
+    
+        currentTime = nextPatrol.endTime.clone();
+        nextPatrolIndex++;
+      }
+    
+      if (currentTime.isBefore(shiftEndTime)) {
+        // If there are no more patrols but there is still time left in the shift, add the remaining time as an available slot
+        availableSlots.push({
+          startTime: currentTime.clone(),
+          endTime: shiftEndTime.clone(),
+        });
+      }
+    
+      return availableSlots;
+    }
+    
+  
+    splitTimeSlots(timeSlots) {
+      const MINIMUM_SLOT_LENGTH = 35;
+      const splitSlots = [];
+    
+      timeSlots.forEach((timeSlot) => {
+        const { startTime, endTime } = timeSlot;
+        const duration = endTime.diff(startTime, 'minutes');
+        
+        if (duration >= MINIMUM_SLOT_LENGTH) {
+          const numSplits = Math.floor(duration / MINIMUM_SLOT_LENGTH);
+          
+          for (let i = 0; i < numSplits; i++) {
+            const splitStartTime = startTime.clone().add(i * MINIMUM_SLOT_LENGTH, 'minutes');
+            const splitEndTime = splitStartTime.clone().add(MINIMUM_SLOT_LENGTH, 'minutes');
+            console.log(`Splitting ${splitStartTime} and ${splitEndTime}`)
+            splitSlots.push({ 'startTime': splitStartTime, 'endTime': splitEndTime });
+          }
+        }
+      });
+    
+      return splitSlots;
+    }
+
+    addBreak(officer, breakTime) {
+      const breakObj = {
+        officer: officer,
+        startTime: breakTime.startTime,
+        endTime: breakTime.endTime
+      };
+      this.breaks.push(breakObj);
     }
 
     async getWeatherData() {
-        const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=49.25&longitude=-123.12&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours&forecast_days=1&timezone=auto`;
-      
-        try {
-          const response = await axios.get(apiUrl);
-          const forecastData = response.data;
-          const { maxTemperature, minTemperature, precipitation } = this.extractWeatherDataForStartTime(forecastData);
-      
-          return { maxTemperature, minTemperature, precipitation };
-        } catch (error) {
-          console.error("Error fetching weather data:", error);
-          return null;
-        }
+      const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=49.25&longitude=-123.12&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours&forecast_days=1&timezone=auto`;
+    
+      try {
+        const response = await axios.get(apiUrl);
+        const forecastData = response.data;
+        const { maxTemperature, minTemperature, precipitation } = this.extractWeatherDataForStartTime(forecastData);
+    
+        return { maxTemperature, minTemperature, precipitation };
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+        throw new Error("Failed to fetch weather data.");
       }
+    }    
       
       extractWeatherDataForStartTime(forecastData) {
         const startDateTime = this.startTime.format("YYYY-MM-DD");
@@ -56,7 +131,7 @@ class Shift {
         this.patrols.forEach((patrol) => {
             const timeDiff = this.calculateTimeDifference(patrol);
             const { status, additionalLine } = this.getStatusAndAdditionalLine(patrol, timeDiff);
-            const patrolString = this.getPatrolString(patrol, status, additionalLine);
+            const patrolString = this.getPatrolString(patrol, additionalLine);
 
             report.push(patrolString);
         });
@@ -93,7 +168,7 @@ class Shift {
         return { status, additionalLine };
     }
 
-    getPatrolString(patrol, status, additionalLine) {
+    getPatrolString(patrol, additionalLine) {
         const startString = `${patrol.startTime.format('HH:mm')}: S/O ${patrol.officer.firstName} ${patrol.officer.lastName.toUpperCase()} started the ${patrol.type} patrol.\n`;
         const endString = `${patrol.endTime.format('HH:mm')}: S/O ${patrol.officer.firstName} ${patrol.officer.lastName.toUpperCase()} completed the ${patrol.type}, all clear.\n`;
         return startString + additionalLine + endString;
@@ -101,7 +176,7 @@ class Shift {
 
     getStartingNotes() {
         const startingNotes = [];
-        const briefingTime = moment("08:00", "HH:mm").format("HH:mm");
+        const briefingTime = this.startTime.format('HH:mm');
       
         // Start time: S/O briefing officer briefed all the officers' names
         const briefingNote = `${briefingTime}: S/O ${this.briefingOfficer.firstName} ${this.briefingOfficer.lastName.toUpperCase()} briefed ${this.getOfficersList()} and handed over the keys.\n`;

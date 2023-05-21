@@ -3,10 +3,10 @@ import Person from './Person';
 import Patrol from './Patrol';
 import Shift from './Shift';
 
-let shift;
 
 export const processString = (str, shiftType) => {
     try {
+        let shift;
         let officers = [];
         let patrols = [];
 
@@ -20,13 +20,13 @@ export const processString = (str, shiftType) => {
         if (shiftType === 'morning') {
             shiftStartTime = moment('08:00', 'HH:mm');
             shiftEndTime = moment('16:00', 'HH:mm');
-          } else if (shiftType === 'evening') {
+        } else if (shiftType === 'evening') {
             shiftStartTime = moment('16:00', 'HH:mm');
             shiftEndTime = moment('00:00', 'HH:mm');
-          } else if (shiftType === 'graveyard') {
+        } else if (shiftType === 'graveyard') {
             shiftStartTime = moment('00:00', 'HH:mm');
             shiftEndTime = moment('08:00', 'HH:mm');
-          }
+        }
 
         arr.forEach((ele) => {
             ele = ele.replace('+ S - M232 - Colliers - Exchange Building  + ', '');
@@ -65,14 +65,14 @@ export const processString = (str, shiftType) => {
         }
 
         shift = new Shift(new Person("Navdeep", "Kaur"), shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
-        
-        return { patrols, officers };
+
+        return shift;
     } catch (error) {
         throw new Error('Unable to generate report. Got this error: ' + error.message);
     }
 };
 
-export const generateShiftReport = async () => {
+export const generateShiftReport = async (shift) => {
     try {
         if (!shift) {
             throw new Error('Shift not initialized. Please call processString() first.');

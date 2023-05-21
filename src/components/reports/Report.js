@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { processString, generateShiftReport } from './Logic';
 import polkaBackground from '../design/polkabackground/PolkaBackground';
 import AppGradient from '../design/glowingparticles/AppGradient';
@@ -8,7 +8,13 @@ const MyComponent = () => {
   const [showResults, setShowResults] = React.useState(false)
   const [resultValue, setResultValue] = useState('');
   const [shiftType, setShiftType] = useState('morning');
+  const [availableTimeSlots, setAvailableTimeSlots] = React.useState(null);
+
   const resultTextAreaRef = useRef(null);
+  useEffect(() => {
+    document.title = 'Report';
+  }, []);
+
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -22,16 +28,48 @@ const MyComponent = () => {
     }
   };
 
+
+  const RenderAvailableTimeSlots = () => {
+    console.log('Render Available Time: ' + availableTimeSlots);
+    return (
+      <div className="dropdown">
+        <button
+          className="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton"
+          data-toggle="dropdown"
+        >
+          Select a time slot
+        </button>
+        <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          {availableTimeSlots.map((timeSlot, index) => (
+            <a
+              key={index}
+              className="dropdown-item"
+              href="#"
+            >
+              {`Start Time: ${timeSlot.startTime.format('HH:mm')} - End Time: ${timeSlot.endTime.format('HH:mm')}`}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+
   const handleSubmit = async () => {
     try {
-      const { officers, patrols } = processString(inputValue, shiftType);
-      const report = await generateShiftReport(officers, patrols);
+      const shift = processString(inputValue, shiftType);
+      const report = await generateShiftReport(shift);
       setResultValue(report);
       setShowResults(true);
+
+      const timeSlots = shift.findAvailableTimeSlots();
+      const availableSlots = shift.splitTimeSlots(timeSlots);
+      setAvailableTimeSlots(availableSlots);
     } catch (error) {
       setResultValue(error.message);
       setShowResults(true);
-      console.error("Error generating report:", error);
     }
   };
 
@@ -53,7 +91,6 @@ const MyComponent = () => {
           style={{ minWidth: '500px', minHeight: '150px' }}
           value={resultValue}
           ref={resultTextAreaRef}
-          readOnly
         ></textarea>
         <br />
         <input
@@ -66,7 +103,7 @@ const MyComponent = () => {
       </div>
     );
   };
-  
+
 
   const OutputWaitSection = () => {
     return (
@@ -80,7 +117,7 @@ const MyComponent = () => {
     const handleShiftTypeChange = (event) => {
       setShiftType(event.target.value);
     };
-  
+
     return (
       <div className="card card-sm" style={{ width: "10rem" }}>
         <div className="card-body">
@@ -105,8 +142,8 @@ const MyComponent = () => {
         </div>
       </div>
     );
-  };  
-  
+  };
+
 
   return (
     <div className="container-fluid" style={polkaBackground}>
@@ -129,14 +166,15 @@ const MyComponent = () => {
               style={{ minWidth: '500px', minHeight: '150px', padding: '5px' }}
               value={inputValue}
               onChange={handleInputChange}
-
             ></textarea>
             <br />
             <div className="container-fluid p-0">
               <div className="text display-5">Shift Type</div>
             </div>
             <br />
-           <ShiftTypeSelector />
+            <ShiftTypeSelector />
+            <br />
+            {/* {(availableTimeSlots) ? <RenderAvailableTimeSlots /> : null} */}
             <br />
             <input
               className="btn btn-primary btn-sm"

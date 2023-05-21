@@ -53,7 +53,8 @@ class Shift {
       return availableSlots;
     }
     
-  
+    
+    
     splitTimeSlots(timeSlots) {
       const MINIMUM_SLOT_LENGTH = 35;
       const splitSlots = [];
@@ -68,7 +69,6 @@ class Shift {
           for (let i = 0; i < numSplits; i++) {
             const splitStartTime = startTime.clone().add(i * MINIMUM_SLOT_LENGTH, 'minutes');
             const splitEndTime = splitStartTime.clone().add(MINIMUM_SLOT_LENGTH, 'minutes');
-            console.log(`Splitting ${splitStartTime} and ${splitEndTime}`)
             splitSlots.push({ 'startTime': splitStartTime, 'endTime': splitEndTime });
           }
         }

@@ -6,7 +6,7 @@ const polkaBackground = {
     fontColor: 'rgb(119, 119, 119)',
     minHeight: '100vh',
     display: 'flex',
-    minWidth: '100vh',
+    minWidth: '100vw',
     margin: 0,
     padding: 0,
   };

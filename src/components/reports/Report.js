@@ -2,6 +2,68 @@ import React, { useState, useRef, useEffect } from 'react';
 import { processString, generateShiftReport } from './Logic';
 import polkaBackground from '../design/polkabackground/PolkaBackground';
 import AppGradient from '../design/glowingparticles/AppGradient';
+import moment from 'moment';
+const ShiftForm = ({ officers, availableTimeSlots, selectedOfficer, handleOfficerSelect, selectedTimeSlot, handleTimeSlotSelect, handleAddBreak, shift }) => {
+  const filterOutTimeSlots = (availableTimeSlots) => {
+    const filteredSlots = availableTimeSlots.filter((slot) => {
+      const slotUsed = shift.breaks.some((breakTime) => {
+        return (
+          breakTime.startTime.format('HH:mm') === slot.startTime.format('HH:mm') &&
+          breakTime.endTime.format('HH:mm') === slot.endTime.format('HH:mm')
+        );
+      });
+
+      return !slotUsed;
+    });
+
+    return filteredSlots;
+  };
+
+  const filterOutOfficers = (officers) => {
+    const filteredOfficers = officers.filter((officer) => {
+      const officerBreak = shift.breaks.find((breakTime) => {
+        return officer.isSamePerson(breakTime.officer);
+      });
+
+      return !officerBreak;
+    });
+
+    return filteredOfficers;
+  };
+
+  const filteredOfficers = filterOutOfficers(officers);
+  const filteredTimeSlots = filterOutTimeSlots(availableTimeSlots);
+
+  return (
+    <div >
+      <div>
+        <label htmlFor="officerSelect" className='blockquote form-label p-1'>Select Officer </label>
+        <select id="officerSelect" value={JSON.stringify(selectedOfficer)} onChange={handleOfficerSelect}>
+          <option value="">Select an Officer</option>
+          {filteredOfficers.map((officer, index) => (
+            <option key={index} value={JSON.stringify(officer)}>
+              {officer.firstName + ' ' + officer.lastName}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="timeSlotSelect" className='blockquote form-label p-1'>Select Time Slot </label>
+        <select id="timeSlotSelect" value={selectedTimeSlot} onChange={handleTimeSlotSelect}>
+          <option value="">Select a Time Slot</option>
+          {filteredTimeSlots.map((slot, index) => (
+            <option key={index} value={`${slot.startTime.format('HH:mm')} - ${slot.endTime.format('HH:mm')}`}>
+              {`${slot.startTime.format('HH:mm')} - ${slot.endTime.format('HH:mm')}`}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button className="btn btn-primary btn-sm" disabled={!selectedOfficer || !selectedTimeSlot} onClick={handleAddBreak}>
+        Add Break
+      </button>
+    </div>
+  );
+};
 
 const MyComponent = () => {
   const [inputValue, setInputValue] = useState('');
@@ -9,8 +71,13 @@ const MyComponent = () => {
   const [resultValue, setResultValue] = useState('');
   const [shiftType, setShiftType] = useState('morning');
   const [availableTimeSlots, setAvailableTimeSlots] = React.useState(null);
-
+  const [officers, setOfficers] = useState([]);
+  const [selectedOfficer, setSelectedOfficer] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [shift, setShift] = useState(null);
   const resultTextAreaRef = useRef(null);
+  const [formKey, setFormKey] = useState(0);
+
   useEffect(() => {
     document.title = 'Report';
   }, []);
@@ -28,38 +95,25 @@ const MyComponent = () => {
     }
   };
 
-
-  const RenderAvailableTimeSlots = () => {
-    console.log('Render Available Time: ' + availableTimeSlots);
-    return (
-      <div className="dropdown">
-        <button
-          className="btn btn-secondary dropdown-toggle"
-          type="button"
-          id="dropdownMenuButton"
-          data-toggle="dropdown"
-        >
-          Select a time slot
-        </button>
-        <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-          {availableTimeSlots.map((timeSlot, index) => (
-            <a
-              key={index}
-              className="dropdown-item"
-              href="#"
-            >
-              {`Start Time: ${timeSlot.startTime.format('HH:mm')} - End Time: ${timeSlot.endTime.format('HH:mm')}`}
-            </a>
-          ))}
-        </div>
-      </div>
-    );
+  const handleOfficerSelect = (event) => {
+    setSelectedOfficer(JSON.parse(event.target.value));
   };
 
+  const handleTimeSlotSelect = (event) => {
+    setSelectedTimeSlot(event.target.value);
+  };
 
-  const handleSubmit = async () => {
-    try {
-      const shift = processString(inputValue, shiftType);
+  const handleAddBreak = async () => {
+    if (selectedOfficer && selectedTimeSlot) {
+
+      const startTime = selectedTimeSlot.split('-')[0].trim();
+      const endTime = selectedTimeSlot.split('-')[1].trim();
+      const breakTime = {
+        officer: selectedOfficer,
+        startTime: moment(startTime, 'HH:mm'),
+        endTime: moment(endTime, 'HH:mm'),
+      };
+      shift.addBreak(breakTime);
       const report = await generateShiftReport(shift);
       setResultValue(report);
       setShowResults(true);
@@ -67,12 +121,46 @@ const MyComponent = () => {
       const timeSlots = shift.findAvailableTimeSlots();
       const availableSlots = shift.splitTimeSlots(timeSlots);
       setAvailableTimeSlots(availableSlots);
-    } catch (error) {
-      setResultValue(error.message);
-      setShowResults(true);
+      setSelectedOfficer('');
+      setSelectedTimeSlot('');
+
     }
   };
 
+  const handleClear = () => {
+    setInputValue('');
+    setShowResults(false);
+    setResultValue('');
+    setSelectedOfficer('');
+    setSelectedTimeSlot('');
+    setAvailableTimeSlots(null);
+    setOfficers([]);
+    setShift(null);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const newShift = processString(inputValue, shiftType);
+      setShift(newShift);
+
+      const report = await generateShiftReport(newShift);
+      setResultValue(report);
+      setShowResults(true);
+
+      const timeSlots = newShift.findAvailableTimeSlots();
+      const availableSlots = newShift.splitTimeSlots(timeSlots);
+      setAvailableTimeSlots(availableSlots);
+      console.log(availableSlots.length);
+
+      const officersList = newShift.officers;
+      setOfficers(officersList);
+      setFormKey((prevKey) => prevKey + 1);
+    } catch (error) {
+      setResultValue(error.message);
+      setShowResults(true);
+      setFormKey((prevKey) => prevKey + 1);
+    }
+  };
   const bodyStyles = {
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
@@ -88,7 +176,11 @@ const MyComponent = () => {
       <div id='output'>
         <textarea
           id="result"
-          style={{ minWidth: '500px', minHeight: '150px' }}
+          style={{
+            minWidth: window.innerWidth >= 992 ? '500px' : '300px',
+            minHeight: '150px',
+            padding: '5px',
+          }}
           value={resultValue}
           ref={resultTextAreaRef}
         ></textarea>
@@ -148,7 +240,7 @@ const MyComponent = () => {
   return (
     <div className="container-fluid" style={polkaBackground}>
       <div className="container" style={bodyStyles}>
-        <div className="row p-0 m-0" style={{ 'zIndex': '999', minHeight: '10vh' }}>
+        <div className="row p-0 m-0" style={{ 'zIndex': '999', minHeight: '5rem' }}>
           <AppGradient />
           <div className='display-5 text-light text-center'>
             Report Writer
@@ -163,7 +255,11 @@ const MyComponent = () => {
             <br />
             <textarea
               id="input"
-              style={{ minWidth: '500px', minHeight: '150px', padding: '5px' }}
+              style={{
+                minWidth: window.innerWidth >= 992 ? '500px' : '300px',
+                minHeight: '150px',
+                padding: '5px',
+              }}
               value={inputValue}
               onChange={handleInputChange}
             ></textarea>
@@ -173,8 +269,30 @@ const MyComponent = () => {
             </div>
             <br />
             <ShiftTypeSelector />
+          </div>
+          <div className="col-sm p-4">
+            <div className="container-fluid p-0">
+              <div className="display-4 white">Output</div>
+            </div>
             <br />
-            {/* {(availableTimeSlots) ? <RenderAvailableTimeSlots /> : null} */}
+            {showResults ? <OutputResultSection /> : <OutputWaitSection />}
+          </div>
+        </div>
+        <div className='row container'>
+          <div className='col-sm'>
+            {(availableTimeSlots) ?
+              <ShiftForm
+                key={formKey}
+                officers={officers}
+                availableTimeSlots={availableTimeSlots}
+                selectedOfficer={selectedOfficer}
+                handleOfficerSelect={handleOfficerSelect}
+                selectedTimeSlot={selectedTimeSlot}
+                handleTimeSlotSelect={handleTimeSlotSelect}
+                handleAddBreak={handleAddBreak}
+                shift={shift}
+              /> : null
+            }
             <br />
             <input
               className="btn btn-primary btn-sm"
@@ -183,13 +301,6 @@ const MyComponent = () => {
               value="SUBMIT"
               onClick={handleSubmit}
             />
-          </div>
-          <div className="col-sm p-4">
-            <div className="container-fluid p-0">
-              <div className="display-4 white">Output</div>
-            </div>
-            <br />
-            {showResults ? <OutputResultSection /> : <OutputWaitSection />}
           </div>
         </div>
       </div >

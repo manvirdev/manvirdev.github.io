@@ -29,7 +29,7 @@ const COLORS = [
 // ];
 
 const gradientStyle = {
-  minHeight: '10vh',
+  minHeight: '5rem',
   maxHeight: '10vh',
   width: '100%',
   margin: 0,

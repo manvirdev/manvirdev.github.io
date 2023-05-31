@@ -64,7 +64,7 @@ export const processString = (str, shiftType) => {
             throw new Error('No patrols found.');
         }
 
-        shift = new Shift(new Person("Navdeep", "Kaur"), shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
+        shift = new Shift(new Person("FirstName", "LastName"), shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
 
         return shift;
     } catch (error) {

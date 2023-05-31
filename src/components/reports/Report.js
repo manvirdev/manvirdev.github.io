@@ -178,7 +178,7 @@ const MyComponent = () => {
           id="result"
           style={{
             minWidth: window.innerWidth >= 992 ? '500px' : '300px',
-            minHeight: '150px',
+            minHeight: window.innerWidth >= 992 ? '500px' : '150px',
             padding: '5px',
           }}
           value={resultValue}
@@ -269,6 +269,28 @@ const MyComponent = () => {
             </div>
             <br />
             <ShiftTypeSelector />
+            {(availableTimeSlots) ?
+          <ShiftForm
+            key={formKey}
+            officers={officers}
+            availableTimeSlots={availableTimeSlots}
+            selectedOfficer={selectedOfficer}
+            handleOfficerSelect={handleOfficerSelect}
+            selectedTimeSlot={selectedTimeSlot}
+            handleTimeSlotSelect={handleTimeSlotSelect}
+            handleAddBreak={handleAddBreak}
+            shift={shift}
+          /> : null
+        }
+        <br />
+        <input
+          className="btn btn-primary btn-sm"
+          type="button"
+          id="submit"
+          value="SUBMIT"
+          onClick={handleSubmit}
+        />
+
           </div>
           <div className="col-sm p-4">
             <div className="container-fluid p-0">
@@ -278,31 +300,7 @@ const MyComponent = () => {
             {showResults ? <OutputResultSection /> : <OutputWaitSection />}
           </div>
         </div>
-        <div className='row container'>
-          <div className='col-sm'>
-            {(availableTimeSlots) ?
-              <ShiftForm
-                key={formKey}
-                officers={officers}
-                availableTimeSlots={availableTimeSlots}
-                selectedOfficer={selectedOfficer}
-                handleOfficerSelect={handleOfficerSelect}
-                selectedTimeSlot={selectedTimeSlot}
-                handleTimeSlotSelect={handleTimeSlotSelect}
-                handleAddBreak={handleAddBreak}
-                shift={shift}
-              /> : null
-            }
-            <br />
-            <input
-              className="btn btn-primary btn-sm"
-              type="button"
-              id="submit"
-              value="SUBMIT"
-              onClick={handleSubmit}
-            />
-          </div>
-        </div>
+
       </div >
     </div >
   );

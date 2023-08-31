@@ -18,6 +18,12 @@ class Shift {
   findAvailableTimeSlots() {
     const availableSlots = [];
 
+    //Print all the available data
+    console.log('Briefing Officer: ', this.briefingOfficer);
+    console.log('Start Time: ', this.startTime);
+    console.log('End Time: ', this.endTime);
+
+
     // Get the start and end times of the shift
     const shiftStartTime = this.startTime;
     const shiftEndTime = this.endTime;

@@ -30,7 +30,7 @@ const COLORS = [
 
 const gradientStyle = {
   minHeight: '5rem',
-  maxHeight: '10vh',
+  maxHeight: '5rem',
   width: '100%',
   margin: 0,
   zIndex: -1,

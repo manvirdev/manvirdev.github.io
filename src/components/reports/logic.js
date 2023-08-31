@@ -22,7 +22,7 @@ export const processString = (str, shiftType) => {
             shiftEndTime = moment('16:00', 'HH:mm');
         } else if (shiftType === 'evening') {
             shiftStartTime = moment('16:00', 'HH:mm');
-            shiftEndTime = moment('00:00', 'HH:mm');
+            shiftEndTime = moment('24:00', 'HH:mm');
         } else if (shiftType === 'graveyard') {
             shiftStartTime = moment('00:00', 'HH:mm');
             shiftEndTime = moment('08:00', 'HH:mm');

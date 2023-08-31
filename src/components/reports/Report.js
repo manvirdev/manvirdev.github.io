@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { processString, generateShiftReport } from './Logic';
+import { processString, generateShiftReport } from './logic';
 import polkaBackground from '../design/polkabackground/PolkaBackground';
 import AppGradient from '../design/glowingparticles/AppGradient';
 import moment from 'moment';
@@ -72,6 +72,7 @@ const MyComponent = () => {
   const [shiftType, setShiftType] = useState('morning');
   const [availableTimeSlots, setAvailableTimeSlots] = React.useState(null);
   const [officers, setOfficers] = useState([]);
+  const [briefingOfficers, setBriefingOfficers] = useState([]);
   const [selectedOfficer, setSelectedOfficer] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [shift, setShift] = useState(null);
@@ -148,6 +149,7 @@ const MyComponent = () => {
       setShowResults(true);
 
       const timeSlots = newShift.findAvailableTimeSlots();
+      console.log(timeSlots);
       const availableSlots = newShift.splitTimeSlots(timeSlots);
       setAvailableTimeSlots(availableSlots);
       console.log(availableSlots.length);
@@ -161,6 +163,7 @@ const MyComponent = () => {
       setFormKey((prevKey) => prevKey + 1);
     }
   };
+
   const bodyStyles = {
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
@@ -196,7 +199,6 @@ const MyComponent = () => {
     );
   };
 
-
   const OutputWaitSection = () => {
     return (
       <div id='output display-5'>
@@ -205,31 +207,96 @@ const MyComponent = () => {
     );
   }
 
-  const ShiftTypeSelector = () => {
+  const handleUpdateBriefingOfficers = (newBriefingOfficers) => {
+    setBriefingOfficers(...briefingOfficers, newBriefingOfficers);
+  };
+
+  const ShiftInfoForm = ({ onUpdateBriefingOfficers }) => {
+    const [rows, setRows] = useState([{ firstName: '', lastName: '' }]);
+    const [briefingOfficers, setBriefingOfficers] = useState([]);
+  
     const handleShiftTypeChange = (event) => {
       setShiftType(event.target.value);
     };
+  
+    const handleInputChange = (event, rowIndex, field) => {
+      const newRows = [...rows];
+      newRows[rowIndex][field] = event.target.value;
+      setRows(newRows);
+    };
+    const handleAddRow = (rowIndex) => {
+      const newBriefingOfficers = [...briefingOfficers, rows[rowIndex]];
+      setBriefingOfficers(newBriefingOfficers);
+      const newRows = [...rows];
+      newRows[rowIndex].isAdded = true;
+      setRows([...newRows, { firstName: '', lastName: '' }]); // Add a new empty row
+  
+      // Call the function passed in via props.
+      onUpdateBriefingOfficers(newBriefingOfficers);
+    };
+  
+    const handleDeleteRow = (rowIndex) => {
+      const newBriefingOfficers = briefingOfficers.filter((_, index) => index !== rowIndex);
+      setBriefingOfficers(newBriefingOfficers);
+      const newRows = [...rows];
+      newRows.splice(rowIndex, 1);
+      setRows(newRows);
+  
+      // Call the function passed in via props.
+      onUpdateBriefingOfficers(newBriefingOfficers);
+    };
+
 
     return (
-      <div className="card card-sm" style={{ width: "10rem" }}>
-        <div className="card-body">
-          <div className="form-check">
-            <input className="form-check-input" type="radio" name="shiftType" id="morning" value="morning" checked={shiftType === 'morning'} onChange={handleShiftTypeChange} />
-            <label className="form-check-label" htmlFor="morning">
-              Morning
-            </label>
+      <div>
+        <div className="card card-sm" style={{ width: "10rem" }}>
+          <div className="card-body">
+            <div className="form-check">
+              <input className="form-check-input" type="radio" name="shiftType" id="morning" value="morning" checked={shiftType === 'morning'} onChange={handleShiftTypeChange} />
+              <label className="form-check-label" htmlFor="morning">
+                Morning
+              </label>
+            </div>
+            <div className="form-check">
+              <input className="form-check-input" type="radio" name="shiftType" id="evening" value="evening" checked={shiftType === 'evening'} onChange={handleShiftTypeChange} />
+              <label className="form-check-label" htmlFor="evening">
+                Evening
+              </label>
+            </div>
+            <div className="form-check">
+              <input className="form-check-input" type="radio" name="shiftType" id="graveyard" value="graveyard" checked={shiftType === 'graveyard'} onChange={handleShiftTypeChange} />
+              <label className="form-check-label" htmlFor="graveyard">
+                Graveyard
+              </label>
+            </div>
           </div>
-          <div className="form-check">
-            <input className="form-check-input" type="radio" name="shiftType" id="evening" value="evening" checked={shiftType === 'evening'} onChange={handleShiftTypeChange} />
-            <label className="form-check-label" htmlFor="evening">
-              Evening
-            </label>
-          </div>
-          <div className="form-check">
-            <input className="form-check-input" type="radio" name="shiftType" id="graveyard" value="graveyard" checked={shiftType === 'graveyard'} onChange={handleShiftTypeChange} />
-            <label className="form-check-label" htmlFor="graveyard">
-              Graveyard
-            </label>
+        </div>
+        <div className="card card-sm" style={{ width: "25rem" }}>
+          <div className="card-body">
+            <table className="table table-sm table-striped">
+              <thead>
+                <tr colspan="3">
+                  Briefing Officers
+                </tr>
+                <tr>
+                  <th scope="col">First Name</th>
+                  <th scope="col">Last Name</th>
+                  <th scope="col">Action</th> {/* Header for add/delete buttons */}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td><input type="text" className="form-control" value={row.firstName} onChange={(e) => handleInputChange(e, rowIndex, 'firstName')} disabled={row.isAdded} /></td>
+                    <td><input type="text" className="form-control" value={row.lastName} onChange={(e) => handleInputChange(e, rowIndex, 'lastName')} disabled={row.isAdded} /></td>
+                    <td>
+                      {!row.isAdded && <button className="btn btn-primary btn-sm" onClick={() => handleAddRow(rowIndex)}>Add</button>}
+                      { rows.length > 1 && <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRow(rowIndex)}>Delete</button>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -265,31 +332,31 @@ const MyComponent = () => {
             ></textarea>
             <br />
             <div className="container-fluid p-0">
-              <div className="text display-5">Shift Type</div>
+              <div className="text display-5">Shift Info</div>
             </div>
             <br />
-            <ShiftTypeSelector />
+            <ShiftInfoForm onUpdateBriefingOfficers={handleUpdateBriefingOfficers} />
             {(availableTimeSlots) ?
-          <ShiftForm
-            key={formKey}
-            officers={officers}
-            availableTimeSlots={availableTimeSlots}
-            selectedOfficer={selectedOfficer}
-            handleOfficerSelect={handleOfficerSelect}
-            selectedTimeSlot={selectedTimeSlot}
-            handleTimeSlotSelect={handleTimeSlotSelect}
-            handleAddBreak={handleAddBreak}
-            shift={shift}
-          /> : null
-        }
-        <br />
-        <input
-          className="btn btn-primary btn-sm"
-          type="button"
-          id="submit"
-          value="SUBMIT"
-          onClick={handleSubmit}
-        />
+              <ShiftForm
+                key={formKey}
+                officers={officers}
+                availableTimeSlots={availableTimeSlots}
+                selectedOfficer={selectedOfficer}
+                handleOfficerSelect={handleOfficerSelect}
+                selectedTimeSlot={selectedTimeSlot}
+                handleTimeSlotSelect={handleTimeSlotSelect}
+                handleAddBreak={handleAddBreak}
+                shift={shift}
+              /> : null
+            }
+            <br />
+            <input
+              className="btn btn-primary btn-sm"
+              type="button"
+              id="submit"
+              value="SUBMIT"
+              onClick={handleSubmit}
+            />
 
           </div>
           <div className="col-sm p-4">

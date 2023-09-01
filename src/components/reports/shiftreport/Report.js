@@ -17,7 +17,7 @@ const Report = () => {
     const handleDataSubmit = async (data) => {
         console.log(data); // Handle or use the data as needed here
         try {
-            const newShift = processString(data.inputValue, data.shiftType, data.briefingOfficers);
+            const newShift = processString(data.inputValue, data.shiftType, data.briefingOfficers, data.breaks);
             setShift(newShift);
 
             const report = await generateShiftReport(newShift);
@@ -78,7 +78,7 @@ const Report = () => {
                 <div className="row">
                     <div className="col-sm p-4 pl-5">
                         {/* Input section component call */}
-                        <InputSection onSubmit={handleDataSubmit} />
+                        <InputSection onSubmit={handleDataSubmit} availableTimeSlots ={availableTimeSlots} officers={officers}/>
                     </div>
                     <div className="col-sm p-4">
                         {/* Output section component call */}

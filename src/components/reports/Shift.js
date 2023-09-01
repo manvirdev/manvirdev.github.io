@@ -150,6 +150,7 @@ class Shift {
         report.push(patrolString);
       } else if (event instanceof Break) {
         const breakTime = event;
+        console.log('Break Time = ', breakTime);
         const breakString = this.getBreakString(breakTime);
 
         report.push(breakString);

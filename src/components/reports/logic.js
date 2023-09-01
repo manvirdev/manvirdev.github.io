@@ -2,14 +2,15 @@ import moment from 'moment';
 import Person from './Person';
 import Patrol from './Patrol';
 import Shift from './Shift';
+import Break from './Break';
 
-
-export const processString = (str, shiftType, briefingOfficersInput) => {
+export const processString = (str, shiftType, briefingOfficersInput, breaksInput) => {
     try {
         let shift;
         let officers = [];
         let patrols = [];
         let briefingOfficers = [];
+        let breaks =  [];
 
         str = String(str);
         str = str.replace(/(?:\r\n|\r|\n)/g, ' ');
@@ -75,8 +76,20 @@ export const processString = (str, shiftType, briefingOfficersInput) => {
         if (patrols.length === 0) {
             throw new Error('No patrols found.');
         }
+        breaksInput.forEach((breakData) => {
+            console.log(breakData)
+            const { officer, startTime, endTime } = breakData;
 
-        shift = new Shift(briefingOfficers, shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
+            // Find or create the officer involved in the break
+
+            const breakStartTime = moment(startTime, 'HH:mm');
+            const breakEndTime = moment(endTime, 'HH:mm');
+            const breakObj = new Break(officer, breakStartTime, breakEndTime);
+
+            breaks.push(breakObj);
+        });
+
+        shift = new Shift(briefingOfficers, shiftStartTime, shiftEndTime, officers, patrols, "morning", breaks);
 
         return shift;
     } catch (error) {

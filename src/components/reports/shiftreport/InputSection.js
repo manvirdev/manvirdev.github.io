@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import moment from 'moment';
 
 const InputTextArea = ({ inputValue, handleInputChange }) => (
     <>
@@ -16,8 +17,8 @@ const ShiftInfo = ({ shiftType, handleShiftTypeChange }) => (
         </div>
         <div className="card card-sm w-25 m-2 ">
             <div className="card-body">
-            <span className="h5">Timing</span>
-            <hr className="mt-1 mb-2" />
+                <span className="h5">Timing</span>
+                <hr className="mt-1 mb-2" />
                 {["morning", "evening", "graveyard"].map(shift => (
                     <div key={shift} className="form-check">
                         <input
@@ -76,11 +77,98 @@ const BriefingOfficersTable = ({ rows, handleOfficerInputChange, handleAddRow, h
     </div>
 );
 
+const TimeSlotsAndOfficers = ({ availableTimeSlots, officers, currentBreaks, onAddBreak }) => {
+    const [selectedOfficer, setSelectedOfficer] = useState(null);
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
 
-const InputSection = ({ onSubmit }) => {
+    const handleOfficerSelect = (e) => {
+        setSelectedOfficer(JSON.parse(e.target.value));
+    };
+
+    const handleTimeSlotSelect = (e) => {
+        setSelectedTimeSlot(e.target.value);
+    };
+
+    const filterOutTimeSlots = () => {
+        const bookedSlots = currentBreaks.map(b => `${b.startTime.format('HH:mm')} - ${b.endTime.format('HH:mm')}`);
+        return availableTimeSlots.filter(slot => !bookedSlots.includes(`${slot.startTime.format('HH:mm')} - ${slot.endTime.format('HH:mm')}`));
+    };
+
+    const filterOutOfficers = () => {
+        const filteredOfficers = officers.filter((officer) => {
+            const officerBreak = currentBreaks.find((breakTime) => {
+                return officer.isSamePerson(breakTime.officer);
+            });
+
+            return !officerBreak;
+        });
+
+        return filteredOfficers;
+    };
+
+    const handleAddBreakButtonClick = () => {
+        if (selectedOfficer && selectedTimeSlot) {
+            const startTime = selectedTimeSlot.split('-')[0].trim();
+            const endTime = selectedTimeSlot.split('-')[1].trim();
+            const breakData = {
+                officer: selectedOfficer,
+                startTime: moment(startTime, 'HH:mm'),
+                endTime: moment(endTime, 'HH:mm')
+            };
+            onAddBreak(breakData);
+            setSelectedOfficer(null);
+            setSelectedTimeSlot('');
+        }
+    };
+
+    const filteredTimeSlots = filterOutTimeSlots();
+    const filteredOfficers = filterOutOfficers(officers);
+
+    return (
+        <div className="card mt-2 card-sm w-50 m-2">
+            <div className="card-body">
+            <span className="h5">Breaks</span>
+                <hr className="mt-1 mb-2" />
+            <div>
+                <label htmlFor="officerSelect" className='blockquote form-label p-1'>Select Officer </label>
+                <select id="officerSelect" value={JSON.stringify(selectedOfficer)} onChange={handleOfficerSelect}>
+                    <option value="">Select an Officer</option>
+                    {filteredOfficers.map((officer, index) => (
+                        <option key={index} value={JSON.stringify(officer)}>
+                            {officer.firstName + ' ' + officer.lastName}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div>
+                <label htmlFor="timeSlotSelect" className='blockquote form-label p-1'>Select Time Slot </label>
+                <select id="timeSlotSelect" value={selectedTimeSlot} onChange={handleTimeSlotSelect}>
+                    <option value="">Select a Time Slot</option>
+                    {filteredTimeSlots.map((slot, index) => (
+                        <option key={index} value={`${slot.startTime.format('HH:mm')} - ${slot.endTime.format('HH:mm')}`}>
+                            {`${slot.startTime.format('HH:mm')} - ${slot.endTime.format('HH:mm')}`}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <button className="btn btn-primary btn-sm" disabled={!selectedOfficer || !selectedTimeSlot} onClick={handleAddBreakButtonClick}>
+                Add Break
+            </button>
+            </div>
+        </div>
+    );
+};
+
+
+const InputSection = ({ onSubmit, availableTimeSlots, officers }) => {
     const [inputValue, setInputValue] = useState('');
     const [shiftType, setShiftType] = useState('morning');
     const [rows, setRows] = useState([{ id: Date.now(), firstName: '', lastName: '', isAdded: false }]);
+    const [breaks, setBreaks] = useState([]);
+
+    const handleAddBreak = (breakData) => {
+        setBreaks(prevBreaks => [...prevBreaks, breakData]);
+    };
 
     const handleInputChange = (e) => setInputValue(e.target.value);
 
@@ -115,7 +203,8 @@ const InputSection = ({ onSubmit }) => {
         const data = {
             inputValue,
             shiftType,
-            briefingOfficers: rows.filter(row => row.isAdded)
+            briefingOfficers: rows.filter(row => row.isAdded),
+            breaks
         };
 
         // Send it to the parent component
@@ -127,6 +216,9 @@ const InputSection = ({ onSubmit }) => {
             <InputTextArea inputValue={inputValue} handleInputChange={handleInputChange} />
             <ShiftInfo shiftType={shiftType} handleShiftTypeChange={handleShiftTypeChange} />
             <BriefingOfficersTable rows={rows} handleOfficerInputChange={handleOfficerInputChange} handleAddRow={handleAddRow} handleUpdateRow={handleUpdateRow} handleDeleteRow={handleDeleteRow} />
+            {(availableTimeSlots.length > 0 && officers.length > 0) ?
+                <TimeSlotsAndOfficers availableTimeSlots={availableTimeSlots} officers={officers} currentBreaks={breaks} onAddBreak={handleAddBreak} /> : null
+            }
             <input className="btn btn-primary btn-sm mt-4" type="button" id="submit" value="SUBMIT" onClick={handleSubmit} />
         </>
     );

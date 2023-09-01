@@ -10,7 +10,7 @@ export const processString = (str, shiftType, briefingOfficersInput, breaksInput
         let officers = [];
         let patrols = [];
         let briefingOfficers = [];
-        let breaks =  [];
+        let breaks = [];
 
         str = String(str);
         str = str.replace(/(?:\r\n|\r|\n)/g, ' ');
@@ -70,6 +70,7 @@ export const processString = (str, shiftType, briefingOfficersInput, breaksInput
             const endTime = moment(ele.match(/\d+:\d+/g)[1], 'HH:mm');
 
             let patrol = new Patrol(patrolType, officer, backupOfficer, startTime, endTime);
+            if(moment.duration(endTime.diff(startTime)).asMinutes() > 2) 
             patrols.push(patrol);
         });
 
@@ -77,7 +78,6 @@ export const processString = (str, shiftType, briefingOfficersInput, breaksInput
             throw new Error('No patrols found.');
         }
         breaksInput.forEach((breakData) => {
-            console.log(breakData)
             const { officer, startTime, endTime } = breakData;
 
             // Find or create the officer involved in the break
@@ -88,8 +88,8 @@ export const processString = (str, shiftType, briefingOfficersInput, breaksInput
 
             breaks.push(breakObj);
         });
-
-        shift = new Shift(briefingOfficers, shiftStartTime, shiftEndTime, officers, patrols, "morning", breaks);
+        shift = new Shift(briefingOfficers, shiftStartTime, shiftEndTime, officers, patrols, shiftType, breaks);
+        console.log("In the logic.js file, the shift object is:", shift);
 
         return shift;
     } catch (error) {

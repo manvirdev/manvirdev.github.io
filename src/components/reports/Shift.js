@@ -13,16 +13,11 @@ class Shift {
     this.patrols = patrols;
     this.type = type;
     this.breaks = breaks;
+    console.log('Shift.js: this.breaks = ', this.breaks, 'this.officers = ', this.officers, 'this.patrols = ', this.patrols, 'this.briefingOfficer = ', this.briefingOfficer, 'this.startTime = ', this.startTime, 'this.endTime = ', this.endTime, 'this.type = ', this.type);
   }
 
   findAvailableTimeSlots() {
     const availableSlots = [];
-
-    //Print all the available data
-    console.log('Briefing Officer: ', this.briefingOfficer);
-    console.log('Start Time: ', this.startTime);
-    console.log('End Time: ', this.endTime);
-
 
     // Get the start and end times of the shift
     const shiftStartTime = this.startTime;
@@ -89,7 +84,6 @@ class Shift {
       breakTime.endTime
     )
     this.breaks.push(breakObj);
-    console.log('Breaks ', this.breaks);
   }
 
   async getWeatherData() {
@@ -156,7 +150,7 @@ class Shift {
         report.push(breakString);
       }
     });
-
+    report.push(this.getShiftEndString());
     return report.join('');
   }
 
@@ -199,10 +193,11 @@ class Shift {
   getStartingNotes() {
     const startingNotes = [];
     const briefingTime = this.startTime.format('HH:mm');
-
-    // Construct a string with all briefing officers' names
-    const briefingOfficerNames = this.briefingOfficer.map(officer => `${officer.firstName} ${officer.lastName.toUpperCase()}`).join(', ');
-
+    let briefingOfficerNames = 'FirstName LASTNAME';
+    if (this.briefingOfficer.length !== 0) {
+      // Construct a string with all briefing officers' names
+      briefingOfficerNames = this.briefingOfficer.map(officer => `${officer.firstName} ${officer.lastName.toUpperCase()}`).join(', ');
+    }
     // Start time: S/O briefing officers briefed all the other officers' names
     const briefingNote = `${briefingTime}: S/O ${briefingOfficerNames} briefed ${this.getOfficersList()} and handed over the keys.\n`;
 
@@ -226,6 +221,12 @@ class Shift {
     const startString = `${breakTime.startTime.format('HH:mm')}: S/O ${breakTime.officer.firstName} ${breakTime.officer.lastName.toUpperCase()} started the break.\n`;
     const endString = `${breakTime.endTime.format('HH:mm')}: S/O ${breakTime.officer.firstName} ${breakTime.officer.lastName.toUpperCase()} completed the break, all clear.\n`;
     return startString + endString;
+  }
+
+  getShiftEndString() {
+    console.log('Shift End Time = ', this.endTime.format('HH:mm'));
+    const shiftEndString = `${this.endTime.format('HH:mm')}: ${this.getOfficersList()} ended the shift, briefed and handed over the keys.\n`;
+    return shiftEndString;
   }
 
 }

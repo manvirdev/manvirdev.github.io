@@ -199,8 +199,11 @@ class Shift {
     const startingNotes = [];
     const briefingTime = this.startTime.format('HH:mm');
 
-    // Start time: S/O briefing officer briefed all the officers' names
-    const briefingNote = `${briefingTime}: S/O ${this.briefingOfficer.firstName} ${this.briefingOfficer.lastName.toUpperCase()} briefed ${this.getOfficersList()} and handed over the keys.\n`;
+    // Construct a string with all briefing officers' names
+    const briefingOfficerNames = this.briefingOfficer.map(officer => `${officer.firstName} ${officer.lastName.toUpperCase()}`).join(', ');
+
+    // Start time: S/O briefing officers briefed all the other officers' names
+    const briefingNote = `${briefingTime}: S/O ${briefingOfficerNames} briefed ${this.getOfficersList()} and handed over the keys.\n`;
 
     startingNotes.push(briefingNote);
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import Home from './components/Home';
-import Report from './components/reports/Report';
+import Report from './components/reports/shiftreport/Report';
 
 const router = createHashRouter([
   {

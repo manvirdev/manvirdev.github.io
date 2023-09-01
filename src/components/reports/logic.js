@@ -4,11 +4,12 @@ import Patrol from './Patrol';
 import Shift from './Shift';
 
 
-export const processString = (str, shiftType) => {
+export const processString = (str, shiftType, briefingOfficersInput) => {
     try {
         let shift;
         let officers = [];
         let patrols = [];
+        let briefingOfficers = [];
 
         str = String(str);
         str = str.replace(/(?:\r\n|\r|\n)/g, ' ');
@@ -27,6 +28,17 @@ export const processString = (str, shiftType) => {
             shiftStartTime = moment('00:00', 'HH:mm');
             shiftEndTime = moment('08:00', 'HH:mm');
         }
+
+        briefingOfficersInput.forEach((ele) => {
+            // Extract firstName and lastName from the input
+            const { firstName, lastName } = ele;
+
+            // Create a new Person object
+            const officer = new Person(firstName, lastName);
+
+            // Add this new officer to the briefingOfficer array
+            briefingOfficers.push(officer);
+        });
 
         arr.forEach((ele) => {
             ele = ele.replace('+ S - M232 - Colliers - Exchange Building  + ', '');
@@ -64,7 +76,7 @@ export const processString = (str, shiftType) => {
             throw new Error('No patrols found.');
         }
 
-        shift = new Shift(new Person("FirstName", "LastName"), shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
+        shift = new Shift(briefingOfficers, shiftStartTime, shiftEndTime, officers, patrols, "morning", []);
 
         return shift;
     } catch (error) {

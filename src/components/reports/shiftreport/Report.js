@@ -67,7 +67,7 @@ const Report = () => {
     };
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid m-0 p-0">
             <div className="container" style={bodyStyles}>
                 <div className="row p-0 m-0" style={{ 'zIndex': '999', minHeight: '5rem' }}>
                     <AppGradient />

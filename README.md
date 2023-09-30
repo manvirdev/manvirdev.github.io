@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system is a React-based web application designed to process and generate reports related to shifts, patrols, breaks, and officers. It provides an user interface that allows users to input shift details and subsequently produces a comprehensive report. Can be reached at [manvirheer.github.io](https:/manvirheer.github.io). We are adding additional informaiton such as breifing notes, weather information, pass-on notes in the generated report based on the shift type.
+This system is a React-based web application designed to process and generate reports related to shifts, patrols, breaks, and officers. It provides an user interface that allows users to input shift details and subsequently produces a comprehensive report. Can be reached at `https:/manvirheer.github.io`. We are adding additional informaiton such as breifing notes, weather information, pass-on notes in the generated report based on the shift type.
 
 
 ## Setup and Contribution
@@ -18,7 +18,7 @@ The application have only single contributor yet but however, you are free to ad
 
 ## Usage
 
-1. Navigate to the [manvirheer.github.io](https:/manvirheer.github.io).
+1. Navigate to the `https:/manvirheer.github.io`.
 2. Input the shift details as required in the `InputSection`.
 3. Select the shift type.
 4. Click submit.

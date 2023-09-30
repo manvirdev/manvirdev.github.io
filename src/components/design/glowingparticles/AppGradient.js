@@ -4,8 +4,6 @@ import { GlowParticle } from './GlowParticle'; // Assuming you have the GlowPart
 const COLORS = [
   { r: 123, g: 50, b: 148 },   // Purple
   { r: 155, g: 89, b: 182 },
-  { r: 186, g: 85, b: 211 },
-  { r: 128, g: 0, b: 128 },
   { r: 138, g: 43, b: 226 },
   { r: 0, g: 0, b: 255 },      // Blue
   { r: 30, g: 144, b: 255 },
